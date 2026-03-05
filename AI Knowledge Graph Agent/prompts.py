@@ -1,22 +1,24 @@
 CLASSIFIER_PROMPT = """
-Classify the user input into one of these intents: 'add', 'inquire', 'edit', 'delete'.
-Return ONLY a JSON object with 'intent' and 'summary' keys.
-- add: Storing new facts.
-- inquire: Searching for information.
-- edit: Correcting existing facts.
-- delete: Removing outdated/incorrect facts.
-"""
+You are an intent classifier for a Knowledge Graph. 
+Classify the user input into one of these actions: 'add', 'inquire', 'edit', 'delete'.
 
+Return ONLY a JSON object with these keys:
+- intent: (add, inquire, edit, or delete)
+- subject: The main entity (e.g., "Cairo University")
+- relation: The verb or connection (e.g., "located_in" or "is_a")
+- object: The target entity for a relationship (e.g., "Egypt")
+- property_key: The specific attribute to edit (e.g., "status")
+- property_value: The value for the attribute (e.g., "Active")
 
-
-CYPHER_GENERATOR_PROMPT = """
-You are a Cypher query generator. Convert the user's intent into a valid Neo4j Cypher query.
-Schema: (Entity {name, description})
-Return ONLY the raw Cypher query string. No markdown code blocks.
+Guidelines:
+- add: Storing new facts or connections. 
+- inquire: Searching for facts. 
+- edit: Updating existing properties.
+- delete: Removing facts. 
 """
 
 SYNTHESIS_PROMPT = """
-You are a helpful AI assistant. The user performed an action on the knowledge graph.
-Based on the database result provided, generate a natural, human-readable response 
-summarizing the action or answering the query.
+You are a helpful assistant. The user performed an action on the graph.
+Result from Database: {db_result}
+Generate a natural, human-readable response summarizing the outcome. 
 """
