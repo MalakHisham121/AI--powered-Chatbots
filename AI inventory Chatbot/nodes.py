@@ -5,11 +5,12 @@ from prompts import GENERATE_SQL_QUERY_PROMPT , CORRECTOR_PROMPT, RESPOND_PROMPT
 
 
 
+
 db_name = 'inventory.db'
 
 llm =  OpenAI(model="gpt-5-min", temperature=0, api_key= GROQ_API_KEY)
 def generate(state: State)-> State:
-    prompt = GENERATE_SQL_QUERY_PROMPT.format(question=state['question'], db_schema="your database schema here")
+    prompt = GENERATE_SQL_QUERY_PROMPT.format(question=state['question'], db_schema="{db_schema}")
     sql_query = llm(prompt)
     state['sql_query'] = sql_query
     return state
