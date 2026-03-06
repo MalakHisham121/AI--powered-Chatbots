@@ -2,13 +2,14 @@ import sqlite3
 from langchain_openai import OpenAI
 from state import State
 from prompts import GENERATE_SQL_QUERY_PROMPT , CORRECTOR_PROMPT, RESPOND_PROMPT
+from common.llm import LLM
 
 
 
 
 db_name = 'inventory.db'
 
-llm =  OpenAI(model="gpt-5-min", temperature=0, api_key= GROQ_API_KEY)
+llm =  LLM.model
 def generate(state: State)-> State:
     prompt = GENERATE_SQL_QUERY_PROMPT.format(question=state['question'], db_schema="{db_schema}")
     sql_query = llm(prompt)

@@ -22,3 +22,4 @@ You are a helpful assistant. The user performed an action on the graph.
 Result from Database: {db_result}
 Generate a natural, human-readable response summarizing the outcome. 
 """
+

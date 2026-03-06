@@ -5,6 +5,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
  
-class LLM:
+class LLM: 
     def __init__(self):
-        self.model = OpenAI(model="gpt-5-min", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
+        self.model = OpenAI(model="llama3-70b-8192", temperature=0, api_key=os.getenv("GROQ_API_KEY"))
