@@ -31,7 +31,7 @@ def run_neo4j_agent():
 
         intent_data = classifier.classify(user_input)
         
-        db_result = engine.execute(intent_data, user_input)
+        db_result = engine.execute(intent_data)
         
         final_response = synthesizer.summarize(db_result)
         print(f"Agent: {final_response}\n")

@@ -20,24 +20,72 @@ class CypherEngine:
         return "Unknown intent."
 
     def add_fact(self, data):
-        subj = EntityNode(name=data['subject'], label="Entity")
-        obj = EntityNode(name=data['object'], label="Entity")
-        rel = Relation(label=data['relation'], source_id=subj.id, target_id=obj.id)
+        entity = data.get('entity', 'Unknown_Entity')
+        value = data.get('value', 'Unknown_Value')
+        relation = data.get('relation', 'related_to')
+
+        query = f"""
+        MERGE (n:Entity {{name: '{entity}'}})
+        MERGE (m:Value {{name: '{value}'}})
+        MERGE (n)-[r:`{relation}`]->(m)
+        """
         
-        self.graph_store.upsert_nodes([subj, obj])
-        self.graph_store.upsert_relations([rel])
-        return f"Created relationship: {data['subject']} --({data['relation']})--> {data['object']}"
+        self.graph_store.structured_query(query)
+    
+        return f"Created relationship: {data['entity']} --({data['relation']})--> {data['value']}"
 
     def inquire_fact(self, data):
-        query = f"MATCH (n {{name: '{data['subject']}'}})-[r]->(m) RETURN n.name, type(r), m.name"
+        query = f"MATCH (n {{name: '{data['entity']}'}})-[r]->(m) RETURN n.name, type(r), m.name"
         return self.graph_store.structured_query(query)
 
     def edit_property(self, data):
-        query = f"MATCH (n {{name: '{data['subject']}'}}) SET n.{data['property_key']} = '{data['property_value']}'"
+        entity = data.get('entity', '').replace("'", "\\'")
+        relation = data.get('relation', '').replace("'", "\\'")
+        new_value = data.get('value', '').replace("'", "\\'")
+
+        # Matches the exact entity and relation, ignoring case, and updates the value node
+        query = f"""
+        MATCH (n:Entity)-[r]->(m:Value) 
+        WHERE toLower(n.name) = toLower('{entity}') 
+          AND toLower(type(r)) = toLower('{relation}')
+        SET m.name = '{new_value}'
+        """
+        
         self.graph_store.structured_query(query)
-        return f"Updated {data['property_key']} for {data['subject']} to {data['property_value']}."
+        return f"Updated relation '{relation}' for '{entity}' to '{new_value}'."
 
     def delete_fact(self, data):
-        query = f"MATCH (n {{name: '{data['subject']}'}}) DETACH DELETE n"
-        self.graph_store.structured_query(query)
-        return f"Deleted entity {data['subject']} from the graph."
+        entity = data.get('entity', '').replace("'", "\\'")
+        relation = data.get('relation', '').replace("'", "\\'")
+
+        if relation:
+            # Delete the specific relation and value node, then check if entity is orphaned
+            query = f"""
+            MATCH (n:Entity)-[r]->(m:Value)
+            WHERE toLower(n.name) = toLower('{entity}') 
+              AND toLower(type(r)) = toLower('{relation}')
+            
+            // Delete the relationship and the target value node
+            DELETE r
+            DETACH DELETE m
+            
+            // Check if the entity node has any other relationships left
+            WITH n
+            OPTIONAL MATCH (n)-[other_r]-()
+            WITH n, count(other_r) AS rel_count
+            
+            // If the relationship count is 0, delete the main entity node too
+            FOREACH (ignore IN CASE WHEN rel_count = 0 THEN [1] ELSE [] END | DETACH DELETE n)
+            """
+            self.graph_store.structured_query(query)
+            return f"Deleted relation '{relation}' and value for '{entity}'."
+            
+        else:
+            # Fallback: Delete entire entity if no relation was specified
+            query = f"""
+            MATCH (n:Entity) 
+            WHERE toLower(n.name) = toLower('{entity}') 
+            DETACH DELETE n
+            """
+            self.graph_store.structured_query(query)
+            return f"Deleted entire entity '{entity}' from the graph."
