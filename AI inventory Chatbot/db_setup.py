@@ -1,3 +1,4 @@
+import sqlite3
 
 db_schema = [
     '''CREATE TABLE IF NOT EXISTS Customers (
@@ -159,14 +160,40 @@ db_schema = [
         CONSTRAINT FK_AssetTransactions_ToLoc FOREIGN KEY (ToLocationId) REFERENCES Locations(LocationId)
     );'''
 ]
-import sqlite3
 
 def init_db():
     conn = sqlite3.connect("inventory.db")
     cursor = conn.cursor()
 
+    # Create tables
     for table_sql in db_schema:
         cursor.execute(table_sql)
+
+    # Insert Sample Data
+    sample_vendors = [
+        ('V001', 'TechSupply Corp', 'sales@techsupply.com', 'USA'),
+        ('V002', 'Global Office Inc', 'info@globaloffice.com', 'Canada')
+    ]
+    cursor.executemany('''INSERT OR IGNORE INTO Vendors (VendorCode, VendorName, Email, Country) 
+                          VALUES (?, ?, ?, ?)''', sample_vendors)
+
+    sample_items = [
+        ('ITM-001', 'MacBook Pro 14', 'Electronics', 'Unit'),
+        ('ITM-002', 'Ergonomic Chair', 'Furniture', 'Unit'),
+        ('ITM-003', 'Dell Monitor 27', 'Electronics', 'Unit')
+    ]
+    cursor.executemany('''INSERT OR IGNORE INTO Items (ItemCode, ItemName, Category, UnitOfMeasure) 
+                          VALUES (?, ?, ?, ?)''', sample_items)
+
+    # Note: Assets requires a SiteId. Ensure you have at least one Site.
+    cursor.execute("INSERT OR IGNORE INTO Sites (SiteCode, SiteName) VALUES ('S001', 'Main Warehouse')")
+    
+    sample_assets = [
+        ('TAG-001', 'Workstation 1', 1, 'SN12345', 'Electronics', 2500.00, 1),
+        ('TAG-002', 'Manager Chair', 1, 'SN67890', 'Furniture', 450.00, 2)
+    ]
+    cursor.executemany('''INSERT OR IGNORE INTO Assets (AssetTag, AssetName, SiteId, SerialNumber, Category, Cost, VendorId) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''', sample_assets)
 
     conn.commit()
     conn.close()

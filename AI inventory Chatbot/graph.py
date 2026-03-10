@@ -1,9 +1,7 @@
 
-from langchain_openai import OpenAI
-from langgraph.graph import END
+from langgraph.graph import StateGraph,END
 from state import State
-from nodes import generate, execute, corrector, respond
-from langgraph import StateGraph
+from nodes import generate, execute, correct, respond
 
 
 
@@ -16,7 +14,7 @@ workflow = StateGraph(State)
 
 workflow.add_node("generator", generate)
 workflow.add_node("executor", execute)
-workflow.add_node("corrector", corrector)
+workflow.add_node("corrector", correct)
 workflow.add_node("responder", respond)
 
 workflow.set_entry_point("generator")

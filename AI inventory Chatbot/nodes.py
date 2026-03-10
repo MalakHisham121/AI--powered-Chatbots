@@ -1,28 +1,33 @@
 import sqlite3
-from langchain_openai import OpenAI
 from state import State
 from prompts import GENERATE_SQL_QUERY_PROMPT , CORRECTOR_PROMPT, RESPOND_PROMPT
-from common.llm import LLM
-
+from llm import LLM
+from db_setup import db_schema 
 
 
 
 db_name = 'inventory.db'
 
-llm =  LLM.model
+llm =  LLM().model
 def generate(state: State)-> State:
-    prompt = GENERATE_SQL_QUERY_PROMPT.format(question=state['question'], db_schema="{db_schema}")
-    sql_query = llm(prompt)
-    state['sql_query'] = sql_query
+    prompt = GENERATE_SQL_QUERY_PROMPT.format(
+            question=state['question'], 
+            db_schema=str(db_schema) 
+        )    
+    sql_query = llm.complete(prompt)
+    state['sql_query'] = sql_query.text
     return state
 
 
 def correct(state: State)-> State:
     
-    prompt = CORRECTOR_PROMPT.format(state=state)
+    prompt = CORRECTOR_PROMPT.format(
+        sql_query=state.get('sql_query'),
+        error=state.get('error')
+        )
     
-    raw_response = llm.invoke(prompt)
-    fixed_query = clean_sql(raw_response)
+    raw_response = llm.complete(prompt)
+    fixed_query = clean_sql(raw_response.text)
     
     updates = {
         "sql_query": fixed_query,
@@ -61,9 +66,9 @@ def respond(state: State)-> State:
     
     prompt = RESPOND_PROMPT.format(question=question, data=results)
     
-    final_output = llm.invoke(prompt)
+    final_output = llm.complete(prompt)
     
-    updates = {"response": final_output.strip()}
+    updates = {"response": final_output.text.strip()}
     return updates
 
     
