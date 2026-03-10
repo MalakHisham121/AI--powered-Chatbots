@@ -188,9 +188,11 @@ def init_db():
     # Note: Assets requires a SiteId. Ensure you have at least one Site.
     cursor.execute("INSERT OR IGNORE INTO Sites (SiteCode, SiteName) VALUES ('S001', 'Main Warehouse')")
     
+    # In db_setup.py
     sample_assets = [
-        ('TAG-001', 'Workstation 1', 1, 'SN12345', 'Electronics', 2500.00, 1),
-        ('TAG-002', 'Manager Chair', 1, 'SN67890', 'Furniture', 450.00, 2)
+        # Change 'Workstation 1' to match 'MacBook Pro 14'
+        ('TAG-001', 'MacBook Pro 14', 1, 'SN12345', 'Electronics', 2500.00, 1), 
+        ('TAG-002', 'Ergonomic Chair', 1, 'SN67890', 'Furniture', 450.00, 2)
     ]
     cursor.executemany('''INSERT OR IGNORE INTO Assets (AssetTag, AssetName, SiteId, SerialNumber, Category, Cost, VendorId) 
                           VALUES (?, ?, ?, ?, ?, ?, ?)''', sample_assets)
