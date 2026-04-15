@@ -19,6 +19,21 @@ def run_neo4j_agent():
         url=os.getenv("NEO4J_URI"),
         database=os.getenv("NEO4J_DATABASE")
     )
+    
+    from llama_index.core.storage.chat_store import SimpleChatStore
+    from llama_index.core.memory import ChatMemoryBuffer
+    from llama_index.core.base.llms.types import ChatMessage
+
+    os.makedirs("memory", exist_ok=True)
+    chat_store_path = os.path.join("memory", "knowledge_chat_memory.json")
+    if os.path.exists(chat_store_path):
+        chat_store = SimpleChatStore.from_persist_path(chat_store_path)
+    else:
+        chat_store = SimpleChatStore()
+
+    memory = ChatMemoryBuffer.from_defaults(
+        chat_store=chat_store, chat_store_key="user_1", token_limit=3000
+    )
 
     classifier = IntentClassifier(llm)
     engine = CypherEngine(graph_store)
@@ -29,11 +44,19 @@ def run_neo4j_agent():
         user_input = input("User: ")
         if user_input.lower() in ["exit", "quit"]: break
 
-        intent_data = classifier.classify(user_input)
+        history_msgs = memory.get_messages()
+        history_str = "\n".join([f"{msg.role.value}: {msg.content}" for msg in history_msgs])
+
+        intent_data = classifier.classify(user_input, chat_history_str=history_str)
         
         db_result = engine.execute(intent_data)
         
         final_response = synthesizer.summarize(db_result)
+        
+        memory.put(ChatMessage(role="user", content=user_input))
+        memory.put(ChatMessage(role="assistant", content=final_response))
+        chat_store.persist(chat_store_path)
+
         print(f"Agent: {final_response}\n")
 
 if __name__ == "__main__":

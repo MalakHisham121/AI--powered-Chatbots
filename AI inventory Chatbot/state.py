@@ -7,5 +7,6 @@ class State(TypedDict):
     sql_result: Union[list[dict], str]
     response : str
     error: str
+    chat_history: list
 
     

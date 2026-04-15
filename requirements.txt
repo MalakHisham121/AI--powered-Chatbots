@@ -59,7 +59,7 @@ uuid_utils==0.14.0
 xxhash==3.6.0
 yarl==1.22.0
 zstandard==0.25.0
-python-dotenv==1.0.1
 llama-index
 llama-index-graph-stores-neo4j
 llama-index-llms-openai
+llama-index-llms-groq

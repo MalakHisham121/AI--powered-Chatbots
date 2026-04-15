@@ -2,6 +2,9 @@
 from langgraph.graph import StateGraph,END
 from state import State
 from nodes import generate, execute, correct, respond
+import os
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 
 
@@ -30,9 +33,12 @@ workflow.add_conditional_edges(
 )
 
 workflow.add_edge("corrector", "executor")
-workflow.add_edge("responder", END)
 
-app = workflow.compile()
+os.makedirs("memory", exist_ok=True)
+conn = sqlite3.connect(os.path.join("memory", "checkpoints.db"), check_same_thread=False)
+memory = SqliteSaver(conn)
+memory.setup()
+app = workflow.compile(checkpointer=memory)
 
 
 

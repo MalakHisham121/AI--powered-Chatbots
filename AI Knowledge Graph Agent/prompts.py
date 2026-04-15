@@ -2,6 +2,9 @@ INTENT_PROMPT = """
 You are an intent classifier for a Knowledge Graph. 
 Classify the user input into exactly one of these actions: 'add', 'inquire', 'edit', 'delete'.
 
+Conversation History (Context):
+{chat_history}
+
 Return ONLY a JSON object with this key:
 - intent: (add, inquire, edit, or delete)
 """
@@ -10,6 +13,9 @@ EXTRACTION_PROMPT = """
 You are an entity extractor for a Knowledge Graph. 
 The user wants to perform the action: '{intent}'.
 Extract the details from the user input. 
+
+Conversation History (Context):
+{chat_history}
 
 Return ONLY a JSON object with these keys:
 - entity: The main entity (e.g., "Cairo University", "Malak")

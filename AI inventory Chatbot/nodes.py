@@ -10,14 +10,16 @@ db_name = 'inventory.db'
 
 llm =  LLM().model
 def generate(state: State)-> State:
+    chat_hist = state.get("chat_history", [])
+    history_str = "\n".join(chat_hist) if chat_hist else "No history yet."
     prompt = GENERATE_SQL_QUERY_PROMPT.format(
             question=state['question'], 
-            db_schema=str(db_schema) 
+            db_schema=str(db_schema),
+            chat_history=history_str
         )    
     sql_query = llm.complete(prompt)
     state['sql_query'] = sql_query.text
     return state
-
 
 def correct(state: State)-> State:
     
@@ -68,7 +70,15 @@ def respond(state: State)-> State:
     
     final_output = llm.complete(prompt)
     
-    updates = {"response": final_output.text.strip()}
+    answer = final_output.text.strip()
+    
+    chat_hist = state.get("chat_history", [])
+    if chat_hist is None:
+        chat_hist = []
+    chat_hist.extend([f"User: {question}", f"Bot: {answer}"])
+    chat_hist = chat_hist[-10:]
+    
+    updates = {"response": answer, "chat_history": chat_hist}
     return updates
 
     

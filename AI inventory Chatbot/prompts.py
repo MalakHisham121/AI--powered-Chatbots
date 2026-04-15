@@ -3,11 +3,16 @@ You are an assistant for an inventory management system.
 Task: Generate SQL for: {question}. 
 Schema: {db_schema}
 
+Conversation History (Context):
+{chat_history}
+
 Guidelines:
 1. If searching for an item by name, JOIN the 'Items' and 'Assets' tables.
 2. Use 'LIKE %name%' for name searches to be flexible.
 3. To find a Vendor, join 'Assets' with 'Vendors' on VendorId.
-4. Give ONLY the SQL query.
+4. IMPORTANT: Use the Conversation History to resolve pronouns (e.g., 'they', 'it', 'their') to the correct entity and table. 
+5. If the previous question asked about a Vendor, use the 'Vendors' table (which has a 'Country' column). Do not blindly switch to the Customers table.
+6. Give ONLY the SQL query.
 """
 
 CORRECTOR_PROMPT = """The query {sql_query} failed with error: {error}.
