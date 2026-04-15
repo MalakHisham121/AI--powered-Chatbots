@@ -44,7 +44,7 @@ def run_neo4j_agent():
         user_input = input("User: ")
         if user_input.lower() in ["exit", "quit"]: break
 
-        history_msgs = memory.get_messages()
+        history_msgs = memory.get_all()
         history_str = "\n".join([f"{msg.role.value}: {msg.content}" for msg in history_msgs])
 
         intent_data = classifier.classify(user_input, chat_history_str=history_str)
